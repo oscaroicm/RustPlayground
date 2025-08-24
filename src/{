@@ -181,67 +181,20 @@ pub fn start_hangman() {
     utilities::clear_console();
     println!("{}", "Hangman".blue());
 
-    println!("Category: {category}");
+    let mut progress = vec!["_"; word.len()];
 
-    let mut progress = vec!["_".to_string(); word.len()];
-    println!("{} ({})", progress.join(" "), progress.len());
+    println!("{}", word.len());
+    println!("{progress:?}");
+    println!("Category: {category} Word: {word}");
 
-    let mut lives_left = 6;
-    let mut letter_history: Vec<String> = Vec::new();
-
-    while progress.join("") != word && lives_left > 0 {
+    while progress.join("") != word {
         let guess = utilities::input("Your guess: ");
-        let message;
-
-        if guess.len() > 1 {
-            message = "Type only 1 letter".to_string();
-        } else if letter_history.contains(&guess) {
-            message = "Letter already guessed".to_string();
-        } else if word.contains(&guess) {
-            message = "Good job!".to_string();
-            progress = fill_progress(&guess, progress, &word);
-            letter_history.push(guess);
-        } else {
-            lives_left -= 1;
-            if lives_left == 0 {
-                break;
-            }
-            message = "Wrong guess!".to_string();
-            letter_history.push(guess);
-        }
-
-        // Reset
-        utilities::clear_console();
-        println!("{}", "Hangman".blue());
-        println!("Category: {category}");
-        println!("Letters guessed: {}", letter_history.join(" "));
-        println!("{} ({})", progress.join(" "), progress.len());
-        println!("{message}");
-        println!("Lives left: {lives_left}");
-    }
-    if progress.join("") == word {
-        println!("You gussed the word! Good job");
-    } else {
-        println!("You didn't guess the word! It was: {word}");
-    }
-    let replay = utilities::input("Game over. Want to play again? y/n: ");
-    if replay == "y" {
-        start_hangman()
+        if word.contains(&guess) {}
     }
 }
 
-fn fill_progress(guess: &str, mut progress: Vec<String>, word: &str) -> Vec<String> {
-    let mut letters: Vec<&str> = word.split("").collect();
-    letters.pop();
-    letters.remove(0);
-
-    for i in 0..letters.len() {
-        if letters[i] == guess {
-            progress[i] = guess.to_string();
-        }
-    }
-
-    progress
+fn fill_progress(guess: &str, progress: Vec<&str>) -> Vec<&str> {
+    vec!["hi"]
 }
 
 fn get_category() -> String {
