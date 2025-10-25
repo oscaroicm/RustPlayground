@@ -52,8 +52,7 @@ fn notes_crud() {
     loop {
         let user_input = utilities::input("Notes> ");
 
-        let command: Vec<&str> = user_input.split(' ').collect(); // Transforms from the iterator
-        // into a vector collection
+        let command: Vec<&str> = user_input.split(' ').collect();
         if command.len() < 2 && with_arguments.contains(&command[0]) {
             println!("Invalid command");
             continue;
@@ -83,7 +82,12 @@ fn notes_crud() {
 }
 
 fn game_choice() {
-    let available_games = ["Rock Paper Scissors", "Guess The Number", "Hangman"];
+    let available_games = [
+        "Rock Paper Scissors",
+        "Guess The Number",
+        "Hangman",
+        "Tic Tac Toe",
+    ];
     utilities::clear_console();
 
     println!("{}", "Available Games".blue());
@@ -97,6 +101,7 @@ fn game_choice() {
         "1" => games::start_rock_paper_scissors(),
         "2" => games::start_guess_the_number(),
         "3" => games::start_hangman(),
+        "4" => games::start_tic_tac_toe(),
         &_ => println!("Game not found"),
     }
 }

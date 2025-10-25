@@ -230,6 +230,145 @@ pub fn start_hangman() {
     }
 }
 
+pub fn start_tic_tac_toe() {
+    let mut game_squares = vec![[" "; 3]; 3];
+    let mut current_player = 1;
+    let mut supporting_msg = "";
+    let mut winner_text = "";
+    let mut title = String::from("Tic Tac Toe - To play, select a square like: 0, 0");
+
+    loop {
+        utilities::clear_console();
+        println!("{}", title.purple());
+
+        display_tic_tac_toe(&game_squares);
+
+        if !supporting_msg.is_empty() {
+            println!("{supporting_msg}");
+        }
+
+        if !winner_text.is_empty() {
+            println!("{}", winner_text.yellow());
+            let play_again = utilities::input("Play again? y/n: ");
+
+            if play_again == "y" {
+                start_tic_tac_toe();
+            } else {
+                break;
+            }
+        }
+
+        let player_coord_choice = utilities::input(&format!("Player {current_player} to play: "));
+
+        let disect_result = match disect_player_choice(&player_coord_choice, &game_squares) {
+            Ok(var) => {
+                supporting_msg = "";
+                var
+            }
+            Err(err) => {
+                supporting_msg = err;
+                utilities::clear_console();
+                continue;
+            }
+        };
+
+        if current_player == 1 {
+            game_squares[disect_result.0][disect_result.1] = "X";
+
+            current_player = 2
+        } else {
+            game_squares[disect_result.0][disect_result.1] = "O";
+
+            current_player = 1
+        }
+
+        title = format!("Tic Tac Toe - Player {current_player} to play");
+
+        if check_for_victory(&game_squares, "X") {
+            winner_text = "Player 1 won!";
+        } else if check_for_victory(&game_squares, "O") {
+            winner_text = "Player 2 won!";
+        }
+    }
+}
+
+fn check_for_victory(map: &Vec<[&str; 3]>, symbol: &str) -> bool {
+    let mut symbol_count_x = 0;
+    let mut symbol_count_y = 0;
+    let mut symbol_count_cross_l = 0;
+    let mut symbol_count_cross_r = 0;
+
+    for i in 0..3 {
+        for j in 0..3 {
+            if map[j][i] == symbol {
+                symbol_count_x += 1;
+            }
+            if map[i][j] == symbol {
+                symbol_count_y += 1;
+            }
+        }
+
+        if map[i][i] == symbol {
+            symbol_count_cross_l += 1;
+        }
+
+        if map[2 - i][2 - i] == symbol {
+            symbol_count_cross_r += 1;
+        }
+
+        if symbol_count_cross_r == 3
+            || symbol_count_cross_l == 3
+            || symbol_count_x == 3
+            || symbol_count_y == 3
+        {
+            return true;
+        }
+
+        (symbol_count_x, symbol_count_y) = (0, 0);
+    }
+
+    false
+}
+
+fn disect_player_choice(input: &str, map: &Vec<[&str; 3]>) -> Result<(usize, usize), &'static str> {
+    let separated_input: Vec<&str> = input.split([',']).map(|l| l.trim()).collect();
+    // println!("{separated_input:?}"); for debugging
+
+    if separated_input.len() != 2 {
+        return Err("Incorrect input");
+    }
+
+    let x_coord_result = separated_input[0].parse::<usize>();
+
+    let y_coord_result = separated_input[1].parse::<usize>();
+
+    if x_coord_result.is_err() {
+        return Err("Invalid input");
+    } else if y_coord_result.is_err() {
+        return Err("Invalid input");
+    } else {
+        let x_coord_value = x_coord_result.unwrap();
+        let y_coord_value = y_coord_result.unwrap();
+
+        if x_coord_value > 2 || y_coord_value > 2 {
+            return Err("Valid squares: 0, 1 or 2");
+        } else if map[x_coord_value][y_coord_value] != " " {
+            return Err("That square is taken");
+        }
+
+        return Ok((x_coord_value, y_coord_value));
+    }
+}
+
+fn display_tic_tac_toe(current_game: &Vec<[&str; 3]>) {
+    for row in current_game {
+        for square in row {
+            print!("[{square}]");
+        }
+        println!();
+    }
+}
+
 fn fill_progress(guess: &str, mut progress: Vec<String>, word: &str) -> Vec<String> {
     let mut letters: Vec<&str> = word.split("").collect();
     letters.pop();
