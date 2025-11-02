@@ -1,6 +1,9 @@
 use chrono::prelude::*;
 use indexmap::IndexMap;
 use std::fs;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::{Duration, Instant};
 
 mod colorization;
 mod games;
@@ -15,6 +18,24 @@ fn main() {
         "Playground - Built with Rust - Type 'help' to see all available commands".green()
     );
 
+    // Complex implementation, using concurrency
+    let seconds_passed = Arc::new(Mutex::new(0));
+    {
+        let c_seconds_passed = seconds_passed.clone();
+        thread::spawn(move || {
+            loop {
+                let mut lock = c_seconds_passed.lock().unwrap();
+                *lock += 1;
+                drop(lock);
+
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+    }
+
+    // Straightforward implementation for a timer
+    let now = Instant::now();
+
     'main_loop: loop {
         let user_input = utilities::input("> ");
         match user_input.as_str() {
@@ -23,6 +44,8 @@ fn main() {
             "date" => print_date(),
             "play" => game_choice(),
             "notes" => notes_crud(),
+            "timer" => get_session_time(Arc::clone(&seconds_passed)),
+            "elapsed" => show_elapsed_time(&now),
             "colors" => println!(
                 "{} - {} - {} - {} - {} - {}",
                 "Red".red(),
@@ -111,6 +134,23 @@ fn print_date() {
     println!("{local_time:?}");
 }
 
+fn get_session_time(time: Arc<Mutex<u64>>) {
+    let total_secs = *time.lock().unwrap();
+    println!("Time passed: {}", format_secs(total_secs));
+}
+
+fn format_secs(time: u64) -> String {
+    let hours = time / 3600;
+    let minutes = time / 60;
+    let seconds = time - (hours * 3600) - (minutes * 60);
+    return format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
+}
+
+fn show_elapsed_time(start: &Instant) {
+    let elapsed_time = start.elapsed();
+    println!("Elapsed: {}", format_secs(elapsed_time.as_secs()));
+}
+
 fn show_help() {
     let commands = IndexMap::from([
         ("exit", "Exits the program"),
@@ -118,6 +158,11 @@ fn show_help() {
         ("play", "Play a game"),
         ("notes", "Starts \"Notes\""),
         ("colors", "Displays a list of colors"),
+        (
+            "timer",
+            "See how much time has passed since the program was opened",
+        ),
+        ("elapsed", "Alternative to 'timer'"),
         ("clear", "Clear the console"),
     ]);
     for (command, description) in commands {
